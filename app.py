@@ -30,6 +30,10 @@ df_grouped["Cantidad_Suavizada"] = df_grouped.groupby("Estado del Sistema")["Can
 df_avg = df_filtrado.groupby("Estado del Sistema")[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].mean().reset_index()
 
 # 🎨 Crear Gráficos con Datos Filtrados
+def create_card(title, fig):
+    st.markdown(f"### {title}")
+    st.plotly_chart(fig, use_container_width=True)
+
 fig_pie = px.pie(total_counts, values="Cantidad", names="Estado", title="📊 Distribución de Estados", color_discrete_sequence=px.colors.qualitative.Set1)
 fig_line = px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Evolución en el Tiempo", markers=True, color_discrete_sequence=px.colors.qualitative.Set2)
 fig_bar = px.bar(df_avg, x="Estado del Sistema", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], barmode="group", title="📊 Uso de Recursos", color_discrete_sequence=px.colors.qualitative.Set3)
@@ -51,6 +55,13 @@ st.markdown("""
             background-color: #FF4B4B;
             color: white;
         }
+        .card {
+            background-color: #1E1E1E;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(255, 255, 255, 0.2);
+            margin-bottom: 10px;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -64,15 +75,29 @@ col2.metric("Advertencia", get_estado_count("Advertencia"))
 col3.metric("Normal", get_estado_count("Normal"))
 col4.metric("Inactivo", get_estado_count("Inactivo"))
 
-# 📊 Mostrar Gráficos en Layout Mejorado
+# 📊 Mostrar Gráficos en Layout Mejorado con Marcos
 g1, g2 = st.columns(2)
-g1.plotly_chart(fig_pie, use_container_width=True)
-g2.plotly_chart(fig_line, use_container_width=True)
+with g1:
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    create_card("📊 Distribución de Estados", fig_pie)
+    st.markdown("</div>", unsafe_allow_html=True)
+with g2:
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    create_card("📈 Evolución en el Tiempo", fig_line)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 g3, g4 = st.columns(2)
-g3.plotly_chart(fig_bar, use_container_width=True)
-g4.plotly_chart(fig_boxplot, use_container_width=True)
+with g3:
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    create_card("📊 Uso de Recursos", fig_bar)
+    st.markdown("</div>", unsafe_allow_html=True)
+with g4:
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    create_card("📉 Distribución de la Latencia", fig_boxplot)
+    st.markdown("</div>", unsafe_allow_html=True)
 
+st.markdown("<div class='card'>", unsafe_allow_html=True)
 st.plotly_chart(fig_trend, use_container_width=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
 st.success("✅ El tablero está listo y funcionando en Streamlit Cloud.")
