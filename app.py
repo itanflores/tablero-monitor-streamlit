@@ -3,6 +3,8 @@ import pandas as pd
 import plotly.express as px
 import seaborn as sns
 import matplotlib.pyplot as plt
+import numpy as np
+from sklearn.linear_model import LinearRegression
 import os
 
 # 🛠️ Configurar la página antes que cualquier otro comando
@@ -58,20 +60,35 @@ with g2:
     st.plotly_chart(px.box(df_filtrado, x="Estado del Sistema", y="Latencia Red (ms)", color="Estado del Sistema", title="📉 Distribución de la Latencia", color_discrete_sequence=px.colors.qualitative.Set1), use_container_width=True)
     st.markdown("**Interpretación:** Muestra la distribución de la latencia de red para cada estado del sistema, permitiendo identificar valores atípicos y dispersión de los datos.")
 
-# 🔥 Indicador de Predicción de Fallas (Simulación con Tendencia Lineal)
-df_grouped['Predicción'] = df_grouped.groupby("Estado del Sistema")["Cantidad_Suavizada"].transform(lambda x: x.shift(-1))
-g3, g4 = st.columns(2)
+# 🔥 Predicción de Estados con Regresión Lineal
+pred_horizonte = 12  # Número de meses a predecir
+predicciones = []
+
+for estado in df_grouped["Estado del Sistema"].unique():
+    df_estado = df_grouped[df_grouped["Estado del Sistema"] == estado].copy()
+    df_estado = df_estado.dropna(subset=["Cantidad_Suavizada"])  # Eliminar NaNs
+    
+    if len(df_estado) > 1:  # Asegurar que hay datos suficientes
+        X = np.array(range(len(df_estado))).reshape(-1, 1)
+        y = df_estado["Cantidad_Suavizada"].values
+        model = LinearRegression()
+        model.fit(X, y)
+        
+        future_dates = pd.date_range(start=df_estado["Fecha"].max(), periods=pred_horizonte, freq="M")
+        X_future = np.array(range(len(df_estado), len(df_estado) + pred_horizonte)).reshape(-1, 1)
+        y_pred = model.predict(X_future)
+        
+        df_pred = pd.DataFrame({
+            "Fecha": future_dates,
+            "Estado del Sistema": estado,
+            "Cantidad_Suavizada": y_pred
+        })
+        predicciones.append(df_pred)
+
+df_pred_final = pd.concat([df_grouped] + predicciones, ignore_index=True)
+
+g3, _ = st.columns(2)
 with g3:
-    st.plotly_chart(px.line(df_grouped, x="Fecha", y=["Cantidad_Suavizada", "Predicción"], color="Estado del Sistema", title="📈 Predicción de Estados del Sistema", markers=True), use_container_width=True)
-    st.markdown("**Interpretación:** Permite visualizar una estimación de la evolución futura de los estados del sistema basada en datos históricos.")
-
-# 🔥 Matriz de Correlación
-correlation_matrix = df_filtrado[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].corr()
-fig_corr, ax = plt.subplots(figsize=(6, 4))  # Ajuste de tamaño
-sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
-ax.set_title("🔍 Matriz de Correlación entre Variables")
-with g4:
-    st.pyplot(fig_corr)
-    st.markdown("**Interpretación:** Muestra la relación entre las variables de uso de CPU, memoria y carga de red, permitiendo identificar posibles dependencias entre ellas.")
-
-st.success("✅ El tablero ha sido actualizado con explicaciones debajo de cada gráfico y los KPI correctamente visibles.")
+    fig_pred = px.line(df_pred_final, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Predicción de Estados del Sistema", markers=True)
+    st.plotly_chart(fig_pred, use_container_width=True)
+    st.markdown("**Interpretación:** Permite visualizar una estimación de la evolución futura de los estados del sistema basada en datos históricos mediante regresión lineal.")
