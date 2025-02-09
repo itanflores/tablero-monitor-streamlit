@@ -50,19 +50,18 @@ for i, estado in enumerate(kpis.keys()):
     kpi_cols[i].metric(f"{kpis[estado]} {estado}", cantidad)
 
 # 📊 Gráficos de Estado bien distribuidos
-st.subheader("📊 Análisis de Estados del Sistema")
 g1, g2 = st.columns([1, 2])
 with g1:
     st.plotly_chart(px.pie(total_counts, values="Cantidad", names="Estado", title="📊 Distribución de Estados"), use_container_width=True)
 with g2:
     df_grouped = df_filtrado.groupby(["Fecha", "Estado del Sistema"]).size().reset_index(name="Cantidad")
     df_grouped["Cantidad_Suavizada"] = df_grouped.groupby("Estado del Sistema")["Cantidad"].transform(lambda x: x.rolling(7, min_periods=1).mean())
-    st.plotly_chart(px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Evolución en el Tiempo", markers=True, height=500), use_container_width=True)
+    st.plotly_chart(px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Evolución en el Tiempo", markers=True, height=400), use_container_width=True)
 
-# 🔥 Matriz de Correlación mejorada
+# 🔥 Matriz de Correlación mejorada y ajustada en tamaño
 st.subheader("🔍 Matriz de Correlación entre Variables")
 correlation_matrix = df_filtrado[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].corr()
-fig_corr, ax = plt.subplots(figsize=(6, 4))
+fig_corr, ax = plt.subplots(figsize=(4, 3))
 sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
 ax.set_title("Matriz de Correlación")
 st.pyplot(fig_corr)
@@ -89,7 +88,7 @@ for estado in df_grouped["Estado del Sistema"].unique():
         predicciones.append(df_pred)
 
 df_pred_final = pd.concat([df_grouped] + predicciones, ignore_index=True)
-st.plotly_chart(px.line(df_pred_final, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Predicción de Estados del Sistema", markers=True, height=600), use_container_width=True)
+st.plotly_chart(px.line(df_pred_final, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Predicción de Estados del Sistema", markers=True, height=500), use_container_width=True)
 
 # 🌡️ Predicción de Temperatura Crítica mejorada
 st.subheader("🌡️ Predicción de Temperatura Crítica")
@@ -105,6 +104,6 @@ if "Uso CPU (%)" in df_filtrado.columns and "Temperatura (°C)" in df_filtrado.c
     future_data = pd.DataFrame({"Uso CPU (%)": future_cpu_usage, "Carga de Red (MB/s)": future_network_load})
     future_temp_pred = model_temp.predict(future_data)
     df_future_temp = pd.DataFrame({"Fecha": future_dates, "Temperatura Predicha (°C)": future_temp_pred})
-    st.plotly_chart(px.line(df_future_temp, x="Fecha", y="Temperatura Predicha (°C)", title="📈 Predicción de Temperatura Crítica", markers=True, height=600), use_container_width=True)
+    st.plotly_chart(px.line(df_future_temp, x="Fecha", y="Temperatura Predicha (°C)", title="📈 Predicción de Temperatura Crítica", markers=True, height=500), use_container_width=True)
 
 st.success("✅ Tablero de Monitoreo con presentación optimizada.")
