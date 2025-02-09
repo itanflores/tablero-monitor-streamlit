@@ -83,10 +83,8 @@ df_pred_final = pd.concat([df_grouped] + predicciones, ignore_index=True)
 st.plotly_chart(px.line(df_pred_final, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Predicción de Estados del Sistema", markers=True), use_container_width=True)
 
 # 🔥 Matriz de Correlación
-g3, _ = st.columns(2)
-with g3:
-    correlation_matrix = df_filtrado[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].corr()
-    fig_corr, ax = plt.subplots(figsize=(4, 2))  # Reducción de tamaño
-    sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
-    ax.set_title("🔍 Matriz de Correlación entre Variables")
-    st.pyplot(fig_corr)
+correlation_matrix = df_filtrado[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].corr()
+fig_corr, ax = plt.subplots(figsize=(5, 3))
+sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
+ax.set_title("🔍 Matriz de Correlación entre Variables")
+st.pyplot(fig_corr)
