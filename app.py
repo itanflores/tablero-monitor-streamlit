@@ -1,4 +1,3 @@
-# 📌 Tablero de Monitoreo del Sistema en Streamlit
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -48,18 +47,12 @@ estado_seleccionado = st.selectbox("Selecciona el Estado del Sistema:", df["Esta
 df_filtrado = df[df["Estado del Sistema"] == estado_seleccionado]
 fig_trend = px.scatter(df_filtrado, x="Fecha", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], title=f"Tendencia de Uso de Recursos - {estado_seleccionado}")
 
-# 📊 Mostrar Gráficos en Pestañas
-tabs = st.tabs(["Distribución", "Evolución", "Uso de Recursos", "Latencia", "Tendencia"])
-with tabs[0]:
-    st.plotly_chart(fig_pie)
-with tabs[1]:
-    st.plotly_chart(fig_line)
-with tabs[2]:
-    st.plotly_chart(fig_bar)
-with tabs[3]:
-    st.plotly_chart(fig_boxplot)
-with tabs[4]:
-    st.plotly_chart(fig_trend)
+# 📊 Mostrar Gráficos en una sola página
+st.plotly_chart(fig_pie, use_container_width=True)
+st.plotly_chart(fig_line, use_container_width=True)
+st.plotly_chart(fig_bar, use_container_width=True)
+st.plotly_chart(fig_boxplot, use_container_width=True)
+st.plotly_chart(fig_trend, use_container_width=True)
 
 # 🔄 Nota: No se necesita Ngrok para Streamlit Cloud
 
