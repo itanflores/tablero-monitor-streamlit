@@ -53,7 +53,7 @@ st.markdown("""
     <style>
         .title-container {
             text-align: center;
-            font-size: 2em;
+            font-size: 2.5em;
             font-weight: bold;
             margin-bottom: 20px;
         }
@@ -86,6 +86,7 @@ st.markdown("""
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
         }
         h3 {
             color: white;
