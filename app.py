@@ -30,34 +30,48 @@ df_grouped["Cantidad_Suavizada"] = df_grouped.groupby("Estado del Sistema")["Can
 df_avg = df_filtrado.groupby("Estado del Sistema")[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].mean().reset_index()
 
 # 🎨 Crear Gráficos con Datos Filtrados
-fig_pie = px.pie(total_counts, values="Cantidad", names="Estado", title="📊 Distribución de Estados")
-fig_line = px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Evolución en el Tiempo", markers=True)
-fig_bar = px.bar(df_avg, x="Estado del Sistema", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], barmode="group", title="📊 Uso de Recursos")
-fig_boxplot = px.box(df_filtrado, x="Estado del Sistema", y="Latencia Red (ms)", color="Estado del Sistema", title="📉 Distribución de la Latencia")
-fig_trend = px.scatter(df_filtrado, x="Fecha", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], title="📊 Tendencia de Uso de Recursos")
+fig_pie = px.pie(total_counts, values="Cantidad", names="Estado", title="📊 Distribución de Estados", color_discrete_sequence=px.colors.qualitative.Set1)
+fig_line = px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Evolución en el Tiempo", markers=True, color_discrete_sequence=px.colors.qualitative.Set2)
+fig_bar = px.bar(df_avg, x="Estado del Sistema", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], barmode="group", title="📊 Uso de Recursos", color_discrete_sequence=px.colors.qualitative.Set3)
+fig_boxplot = px.box(df_filtrado, x="Estado del Sistema", y="Latencia Red (ms)", color="Estado del Sistema", title="📉 Distribución de la Latencia", color_discrete_sequence=px.colors.qualitative.Set1)
+fig_trend = px.scatter(df_filtrado, x="Fecha", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], title="📊 Tendencia de Uso de Recursos", color_discrete_sequence=px.colors.qualitative.Set2)
 
 # 🔦 Manejo seguro de las métricas para evitar errores de índice
 def get_estado_count(estado):
     return total_counts.loc[total_counts["Estado"] == estado, "Cantidad"].values[0] if estado in total_counts["Estado"].values else 0
 
+# 📌 Diseño Mejorado
+st.markdown("""
+    <style>
+        .metric-container {
+            display: flex;
+            justify-content: space-around;
+        }
+        .stButton>button {
+            background-color: #FF4B4B;
+            color: white;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 st.title("📊 Tablero de Monitoreo del Sistema")
 st.subheader("📌 KPIs del Sistema")
 
-# 📊 Mostrar métricas clave con manejo de errores
-top_row = st.columns(4)
-top_row[0].metric("Crítico", get_estado_count("Crítico"))
-top_row[1].metric("Advertencia", get_estado_count("Advertencia"))
-top_row[2].metric("Normal", get_estado_count("Normal"))
-top_row[3].metric("Inactivo", get_estado_count("Inactivo"))
+# 📊 Mostrar métricas clave con mejor diseño
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("Crítico", get_estado_count("Crítico"))
+col2.metric("Advertencia", get_estado_count("Advertencia"))
+col3.metric("Normal", get_estado_count("Normal"))
+col4.metric("Inactivo", get_estado_count("Inactivo"))
 
-# 📊 Mostrar Gráficos en un diseño más compacto
-row1 = st.columns(2)
-row1[0].plotly_chart(fig_pie, use_container_width=True)
-row1[1].plotly_chart(fig_line, use_container_width=True)
+# 📊 Mostrar Gráficos en Layout Mejorado
+g1, g2 = st.columns(2)
+g1.plotly_chart(fig_pie, use_container_width=True)
+g2.plotly_chart(fig_line, use_container_width=True)
 
-row2 = st.columns(2)
-row2[0].plotly_chart(fig_bar, use_container_width=True)
-row2[1].plotly_chart(fig_boxplot, use_container_width=True)
+g3, g4 = st.columns(2)
+g3.plotly_chart(fig_bar, use_container_width=True)
+g4.plotly_chart(fig_boxplot, use_container_width=True)
 
 st.plotly_chart(fig_trend, use_container_width=True)
 
