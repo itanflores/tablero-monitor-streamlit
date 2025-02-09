@@ -65,18 +65,24 @@ for estado in df_pred["Estado del Sistema"].unique():
                                       "Estado del Sistema": estado})
             df_pred = pd.concat([df_pred, future_df], ignore_index=True)
 
-g3, g4 = st.columns(2)
-with g3:
-    st.plotly_chart(px.line(df_pred, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Predicción de Estados del Sistema", markers=True), use_container_width=True)
-    st.markdown("**Interpretación:** Permite visualizar una estimación de la evolución futura de los estados del sistema basada en datos históricos mediante regresión lineal.")
+# 📊 Gráficas del tablero
+g1, g2 = st.columns(2)
+with g1:
+    st.plotly_chart(px.pie(total_counts, names="Estado", values="Cantidad", title="📊 Distribución de Estados"), use_container_width=True)
+    st.markdown("**Interpretación:** Este gráfico muestra la distribución de estados del sistema en porcentajes, permitiendo identificar la proporción de cada estado.")
 
-# 🔥 Matriz de Correlación
-correlation_matrix = df_filtrado[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].corr()
-fig_corr, ax = plt.subplots(figsize=(8, 6))
-sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
-ax.set_title("🔍 Matriz de Correlación entre Variables")
-with g4:
+    st.plotly_chart(px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Evolución en el Tiempo"), use_container_width=True)
+    st.markdown("**Interpretación:** Representa la evolución temporal de cada estado del sistema, permitiendo detectar tendencias y fluctuaciones a lo largo del tiempo.")
+
+with g2:
+    st.plotly_chart(px.bar(df_avg, x="Estado del Sistema", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], title="📊 Uso Promedio de Recursos por Estado"), use_container_width=True)
+    st.markdown("**Interpretación:** Comparación del uso promedio de CPU, memoria y carga de red según el estado del sistema, permitiendo evaluar diferencias en consumo de recursos.")
+
+    correlation_matrix = df_filtrado[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].corr()
+    fig_corr, ax = plt.subplots(figsize=(8, 6))
+    sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
+    ax.set_title("🔍 Matriz de Correlación entre Variables")
     st.pyplot(fig_corr)
     st.markdown("**Interpretación:** Muestra la relación entre las variables de uso de CPU, memoria y carga de red, permitiendo identificar posibles dependencias entre ellas.")
 
-st.success("✅ El tablero ha sido actualizado con una predicción más precisa y mejor visualización de la matriz de correlación.")
+st.success("✅ El tablero ha sido actualizado con una predicción más precisa y mejor visualización de todas las métricas y gráficos.")
