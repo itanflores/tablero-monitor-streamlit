@@ -31,30 +31,31 @@ df_filtrado = df[df["Estado del Sistema"].isin(estados_seleccionados)]
 # 📌 Sección 1: Estado Actual
 st.header("📌 Estado Actual del Sistema")
 
-# 📊 KPIs del Sistema
+# 📊 KPIs del Sistema con mejor distribución
 st.subheader("🔹 KPIs del Sistema")
-kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+kpi_cols = st.columns(4)
 total_counts = df_filtrado["Estado del Sistema"].value_counts().reset_index()
 total_counts.columns = ["Estado", "Cantidad"]
 
-kpi1.metric("Crítico", total_counts.loc[total_counts["Estado"] == "Crítico", "Cantidad"].values[0] if "Crítico" in total_counts["Estado"].values else 0)
-kpi2.metric("Advertencia", total_counts.loc[total_counts["Estado"] == "Advertencia", "Cantidad"].values[0] if "Advertencia" in total_counts["Estado"].values else 0)
-kpi3.metric("Normal", total_counts.loc[total_counts["Estado"] == "Normal", "Cantidad"].values[0] if "Normal" in total_counts["Estado"].values else 0)
-kpi4.metric("Inactivo", total_counts.loc[total_counts["Estado"] == "Inactivo", "Cantidad"].values[0] if "Inactivo" in total_counts["Estado"].values else 0)
+kpis = {"Crítico": "❗", "Advertencia": "⚠️", "Normal": "✅", "Inactivo": "🔘"}
+for i, estado in enumerate(kpis.keys()):
+    cantidad = total_counts.loc[total_counts["Estado"] == estado, "Cantidad"].values[0] if estado in total_counts["Estado"].values else 0
+    kpi_cols[i].metric(f"{kpis[estado]} {estado}", cantidad)
 
-# 📊 Gráficos de Estado
-g1, g2 = st.columns(2)
+# 📊 Gráficos de Estado bien distribuidos
+st.subheader("📊 Análisis de Estados del Sistema")
+g1, g2 = st.columns([1, 2])
 with g1:
     st.plotly_chart(px.pie(total_counts, values="Cantidad", names="Estado", title="📊 Distribución de Estados"), use_container_width=True)
 with g2:
     df_grouped = df_filtrado.groupby(["Fecha", "Estado del Sistema"]).size().reset_index(name="Cantidad")
     df_grouped["Cantidad_Suavizada"] = df_grouped.groupby("Estado del Sistema")["Cantidad"].transform(lambda x: x.rolling(7, min_periods=1).mean())
-    st.plotly_chart(px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Evolución en el Tiempo", markers=True), use_container_width=True)
+    st.plotly_chart(px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Evolución en el Tiempo", markers=True, height=500), use_container_width=True)
 
-# 🔥 Matriz de Correlación
+# 🔥 Matriz de Correlación mejorada
 st.subheader("🔍 Matriz de Correlación entre Variables")
 correlation_matrix = df_filtrado[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].corr()
-fig_corr, ax = plt.subplots(figsize=(5, 3))
+fig_corr, ax = plt.subplots(figsize=(6, 4))
 sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
 ax.set_title("Matriz de Correlación")
 st.pyplot(fig_corr)
@@ -62,7 +63,7 @@ st.pyplot(fig_corr)
 # 📌 Sección 2: Sección de Pronósticos
 st.header("📌 Sección de Pronósticos")
 
-# 📈 Predicción de Estados del Sistema
+# 📈 Predicción de Estados del Sistema mejorada
 st.subheader("📈 Predicción de Estados del Sistema")
 pred_horizonte = 12  # Número de meses a predecir
 predicciones = []
@@ -81,9 +82,9 @@ for estado in df_grouped["Estado del Sistema"].unique():
         predicciones.append(df_pred)
 
 df_pred_final = pd.concat([df_grouped] + predicciones, ignore_index=True)
-st.plotly_chart(px.line(df_pred_final, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Predicción de Estados del Sistema", markers=True), use_container_width=True)
+st.plotly_chart(px.line(df_pred_final, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Predicción de Estados del Sistema", markers=True, height=600), use_container_width=True)
 
-# 🌡️ Predicción de Temperatura Crítica
+# 🌡️ Predicción de Temperatura Crítica mejorada
 st.subheader("🌡️ Predicción de Temperatura Crítica")
 if "Uso CPU (%)" in df_filtrado.columns and "Temperatura (°C)" in df_filtrado.columns:
     df_temp = df_filtrado[["Fecha", "Uso CPU (%)", "Carga de Red (MB/s)", "Temperatura (°C)"]].dropna()
@@ -97,6 +98,6 @@ if "Uso CPU (%)" in df_filtrado.columns and "Temperatura (°C)" in df_filtrado.c
     future_data = pd.DataFrame({"Uso CPU (%)": future_cpu_usage, "Carga de Red (MB/s)": future_network_load})
     future_temp_pred = model_temp.predict(future_data)
     df_future_temp = pd.DataFrame({"Fecha": future_dates, "Temperatura Predicha (°C)": future_temp_pred})
-    st.plotly_chart(px.line(df_future_temp, x="Fecha", y="Temperatura Predicha (°C)", title="📈 Predicción de Temperatura Crítica", markers=True), use_container_width=True)
+    st.plotly_chart(px.line(df_future_temp, x="Fecha", y="Temperatura Predicha (°C)", title="📈 Predicción de Temperatura Crítica", markers=True, height=600), use_container_width=True)
 
-st.success("✅ Tablero de Monitoreo completamente integrado.")
+st.success("✅ Tablero de Monitoreo con presentación optimizada.")
