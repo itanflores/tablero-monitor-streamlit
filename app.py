@@ -20,9 +20,6 @@ df['Fecha'] = pd.to_datetime(df['Fecha'])
 estados_seleccionados = st.multiselect("Selecciona uno o más Estados:", df["Estado del Sistema"].unique(), default=df["Estado del Sistema"].unique())
 df_filtrado = df[df["Estado del Sistema"].isin(estados_seleccionados)]
 
-if st.button("Restablecer Filtros"):
-    st.experimental_rerun()
-
 # 💊 Generar Datos de Estado
 total_counts = df_filtrado["Estado del Sistema"].value_counts().reset_index()
 total_counts.columns = ["Estado", "Cantidad"]
