@@ -37,6 +37,35 @@ df_grouped["Cantidad_Suavizada"] = df_grouped.groupby("Estado del Sistema")["Can
 
 df_avg = df_filtrado.groupby("Estado del Sistema")[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].mean().reset_index()
 
+# 📌 Predicción de Estados del Sistema con Regresión Lineal
+st.subheader("📈 Predicción de Estados del Sistema")
+pred_horizonte = 12  # Número de meses a predecir
+predicciones = []
+
+for estado in df_grouped["Estado del Sistema"].unique():
+    df_estado = df_grouped[df_grouped["Estado del Sistema"] == estado].copy()
+    df_estado = df_estado.dropna(subset=["Cantidad_Suavizada"])  # Eliminar NaNs
+    
+    if len(df_estado) > 1:
+        X = np.array(range(len(df_estado))).reshape(-1, 1)
+        y = df_estado["Cantidad_Suavizada"].values
+        model = LinearRegression()
+        model.fit(X, y)
+        
+        future_dates = pd.date_range(start=df_estado["Fecha"].max(), periods=pred_horizonte, freq="M")
+        X_future = np.array(range(len(df_estado), len(df_estado) + pred_horizonte)).reshape(-1, 1)
+        y_pred = model.predict(X_future)
+        
+        df_pred = pd.DataFrame({
+            "Fecha": future_dates,
+            "Estado del Sistema": estado,
+            "Cantidad_Suavizada": y_pred
+        })
+        predicciones.append(df_pred)
+
+df_pred_final = pd.concat([df_grouped] + predicciones, ignore_index=True)
+st.plotly_chart(px.line(df_pred_final, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Predicción de Estados del Sistema", markers=True), use_container_width=True)
+
 # 📌 Predicción de Temperatura Crítica
 st.subheader("🌡️ Predicción de Temperatura Crítica")
 
@@ -66,4 +95,4 @@ if "Uso CPU (%)" in df_filtrado.columns and "Temperatura (°C)" in df_filtrado.c
     fig_temp = px.line(df_future_temp, x="Fecha", y="Temperatura Predicha (°C)", title="📈 Predicción de Temperatura Crítica", markers=True)
     st.plotly_chart(fig_temp, use_container_width=True)
 
-st.success("✅ El tablero ha sido corregido con todas las gráficas intactas y la predicción de temperatura correctamente integrada.")
+st.success("✅ El tablero ha sido corregido con todas las gráficas intactas y las predicciones correctamente integradas.")
