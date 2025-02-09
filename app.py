@@ -8,6 +8,9 @@ import os
 # 🛠️ Configurar la página antes que cualquier otro comando
 st.set_page_config(page_title="Tablero de Monitoreo", page_icon="📊", layout="wide")
 
+# 📢 Título del tablero
+st.title("📊 Tablero de Monitoreo del Sistema")
+
 # 💞 Cargar Dataset
 DATASET_URL = "dataset_procesado.csv"
 if not os.path.exists(DATASET_URL):
@@ -25,6 +28,14 @@ df_filtrado = df[df["Estado del Sistema"].isin(estados_seleccionados)]
 # 💫 Generar Datos de Estado
 total_counts = df_filtrado["Estado del Sistema"].value_counts().reset_index()
 total_counts.columns = ["Estado", "Cantidad"]
+
+# 📌 KPIs del Sistema
+st.subheader("📌 KPIs del Sistema")
+kpi1, kpi2, kpi3, kpi4 = st.columns(4)
+kpi1.metric("Crítico", total_counts.loc[total_counts["Estado"] == "Crítico", "Cantidad"].values[0] if "Crítico" in total_counts["Estado"].values else 0)
+kpi2.metric("Advertencia", total_counts.loc[total_counts["Estado"] == "Advertencia", "Cantidad"].values[0] if "Advertencia" in total_counts["Estado"].values else 0)
+kpi3.metric("Normal", total_counts.loc[total_counts["Estado"] == "Normal", "Cantidad"].values[0] if "Normal" in total_counts["Estado"].values else 0)
+kpi4.metric("Inactivo", total_counts.loc[total_counts["Estado"] == "Inactivo", "Cantidad"].values[0] if "Inactivo" in total_counts["Estado"].values else 0)
 
 df_grouped = df_filtrado.groupby(["Fecha", "Estado del Sistema"]).size().reset_index(name="Cantidad")
 df_grouped["Cantidad_Suavizada"] = df_grouped.groupby("Estado del Sistema")["Cantidad"].transform(lambda x: x.rolling(7, min_periods=1).mean())
@@ -63,4 +74,4 @@ with g4:
     st.pyplot(fig_corr)
     st.markdown("**Interpretación:** Muestra la relación entre las variables de uso de CPU, memoria y carga de red, permitiendo identificar posibles dependencias entre ellas.")
 
-st.success("✅ El tablero ha sido actualizado con explicaciones debajo de cada gráfico.")
+st.success("✅ El tablero ha sido actualizado con explicaciones debajo de cada gráfico y los KPI correctamente visibles.")
