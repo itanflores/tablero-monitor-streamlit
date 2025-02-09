@@ -44,17 +44,21 @@ st.title("📊 Tablero de Monitoreo del Sistema")
 st.subheader("📌 KPIs del Sistema")
 
 # 📊 Mostrar métricas clave con manejo de errores
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Crítico", get_estado_count("Crítico"))
-col2.metric("Advertencia", get_estado_count("Advertencia"))
-col3.metric("Normal", get_estado_count("Normal"))
-col4.metric("Inactivo", get_estado_count("Inactivo"))
+top_row = st.columns(4)
+top_row[0].metric("Crítico", get_estado_count("Crítico"))
+top_row[1].metric("Advertencia", get_estado_count("Advertencia"))
+top_row[2].metric("Normal", get_estado_count("Normal"))
+top_row[3].metric("Inactivo", get_estado_count("Inactivo"))
 
-# 📊 Mostrar Gráficos
-st.plotly_chart(fig_pie, use_container_width=True)
-st.plotly_chart(fig_line, use_container_width=True)
-st.plotly_chart(fig_bar, use_container_width=True)
-st.plotly_chart(fig_boxplot, use_container_width=True)
+# 📊 Mostrar Gráficos en un diseño más compacto
+row1 = st.columns(2)
+row1[0].plotly_chart(fig_pie, use_container_width=True)
+row1[1].plotly_chart(fig_line, use_container_width=True)
+
+row2 = st.columns(2)
+row2[0].plotly_chart(fig_bar, use_container_width=True)
+row2[1].plotly_chart(fig_boxplot, use_container_width=True)
+
 st.plotly_chart(fig_trend, use_container_width=True)
 
 st.success("✅ El tablero está listo y funcionando en Streamlit Cloud.")
