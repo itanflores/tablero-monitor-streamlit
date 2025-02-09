@@ -61,9 +61,11 @@ with g2:
     st.markdown("**Interpretación:** Muestra la distribución de la latencia de red para cada estado del sistema, permitiendo identificar valores atípicos y dispersión de los datos.")
 
 # 🔥 Matriz de Correlación
-correlation_matrix = df_filtrado[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].corr()
-fig_corr, ax = plt.subplots(figsize=(6, 4))
-sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
-ax.set_title("🔍 Matriz de Correlación entre Variables")
-st.pyplot(fig_corr)
-st.markdown("**Interpretación:** Muestra la relación entre las variables de uso de CPU, memoria y carga de red, permitiendo identificar posibles dependencias entre ellas.")
+g3, _ = st.columns(2)
+with g3:
+    correlation_matrix = df_filtrado[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].corr()
+    fig_corr, ax = plt.subplots(figsize=(5, 3))  # Ajuste de tamaño más compacto
+    sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
+    ax.set_title("🔍 Matriz de Correlación entre Variables")
+    st.pyplot(fig_corr)
+    st.markdown("**Interpretación:** Muestra la relación entre las variables de uso de CPU, memoria y carga de red, permitiendo identificar posibles dependencias entre ellas.")
