@@ -83,6 +83,9 @@ st.markdown("""
             border: 2px solid rgba(255, 255, 255, 0.5);
             text-align: center;
             width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         h3 {
             color: white;
