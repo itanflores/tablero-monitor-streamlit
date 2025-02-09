@@ -16,13 +16,20 @@ st.title("📊 Tablero de Monitoreo del Sistema")
 
 # 💞 Cargar Dataset
 DATASET_URL = "dataset_procesado.csv"
-if not os.path.exists(DATASET_URL):
-    st.error("❌ Error: El dataset no se encuentra en la ruta especificada.")
+if not os.path.exists(DATASET_URL) or os.path.getsize(DATASET_URL) == 0:
+    st.error("❌ Error: El dataset está vacío o no se encuentra en la ruta especificada.")
     st.stop()
 
-df = pd.read_csv(DATASET_URL)
-df.columns = df.columns.str.strip()
-df['Fecha'] = pd.to_datetime(df['Fecha'])
+try:
+    df = pd.read_csv(DATASET_URL)
+    df.columns = df.columns.str.strip()
+    df['Fecha'] = pd.to_datetime(df['Fecha'])
+except pd.errors.EmptyDataError:
+    st.error("❌ Error: El archivo CSV está vacío.")
+    st.stop()
+except pd.errors.ParserError:
+    st.error("❌ Error: Problema con el formato del archivo CSV.")
+    st.stop()
 
 # 📌 Filtros
 estados_seleccionados = st.multiselect("Selecciona uno o más Estados:", df["Estado del Sistema"].unique(), default=df["Estado del Sistema"].unique())
