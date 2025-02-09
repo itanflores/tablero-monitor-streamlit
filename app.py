@@ -31,15 +31,18 @@ df_avg = df_filtrado.groupby("Estado del Sistema")[["Uso CPU (%)", "Memoria Util
 
 # 🎨 Crear Gráficos con Datos Filtrados
 def create_card(title, fig):
-    st.markdown(f"<div class='card'><h3>{title}</h3>", unsafe_allow_html=True)
+    st.markdown(f"""
+        <div class='card'>
+            <h3>{title}</h3>
+        </div>
+    """, unsafe_allow_html=True)
     st.plotly_chart(fig, use_container_width=True)
-    st.markdown("</div>", unsafe_allow_html=True)
 
 fig_pie = px.pie(total_counts, values="Cantidad", names="Estado", title="📊 Distribución de Estados", color_discrete_sequence=px.colors.qualitative.Set1)
 fig_line = px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Evolución en el Tiempo", markers=True, color_discrete_sequence=px.colors.qualitative.Set2)
 fig_bar = px.bar(df_avg, x="Estado del Sistema", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], barmode="group", title="📊 Uso de Recursos", color_discrete_sequence=px.colors.qualitative.Set3)
 fig_boxplot = px.box(df_filtrado, x="Estado del Sistema", y="Latencia Red (ms)", color="Estado del Sistema", title="📉 Distribución de la Latencia", color_discrete_sequence=px.colors.qualitative.Set1)
-fig_trend = px.scatter(df_filtrado, x="Fecha", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], title="📊 Tendencia de Uso de Recursos", color_discrete_sequence=px.colors.qualitative.Set2)
+fig_trend = px.scatter(df_filtrado.melt(id_vars=["Fecha"], value_vars=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], var_name="Variable", value_name="Valor"), x="Fecha", y="Valor", color="Variable", title="📊 Tendencia de Uso de Recursos", color_discrete_sequence=px.colors.qualitative.Set2)
 
 # 🔦 Manejo seguro de las métricas para evitar errores de índice
 def get_estado_count(estado):
@@ -48,9 +51,15 @@ def get_estado_count(estado):
 # 📌 Diseño Mejorado
 st.markdown("""
     <style>
+        .title-container {
+            text-align: center;
+            font-size: 2em;
+            font-weight: bold;
+        }
         .metric-container {
             display: flex;
             justify-content: space-around;
+            gap: 15px;
         }
         .stButton>button {
             background-color: #FF4B4B;
@@ -71,15 +80,27 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-st.title("📊 Tablero de Monitoreo del Sistema")
+st.markdown("<div class='title-container'>📊 Tablero de Monitoreo del Sistema</div>", unsafe_allow_html=True)
 st.subheader("📌 KPIs del Sistema")
 
 # 📊 Mostrar métricas clave con mejor diseño
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Crítico", get_estado_count("Crítico"))
-col2.metric("Advertencia", get_estado_count("Advertencia"))
-col3.metric("Normal", get_estado_count("Normal"))
-col4.metric("Inactivo", get_estado_count("Inactivo"))
+g1, g2, g3, g4 = st.columns(4)
+with g1:
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.metric("Crítico", get_estado_count("Crítico"))
+    st.markdown("</div>", unsafe_allow_html=True)
+with g2:
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.metric("Advertencia", get_estado_count("Advertencia"))
+    st.markdown("</div>", unsafe_allow_html=True)
+with g3:
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.metric("Normal", get_estado_count("Normal"))
+    st.markdown("</div>", unsafe_allow_html=True)
+with g4:
+    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.metric("Inactivo", get_estado_count("Inactivo"))
+    st.markdown("</div>", unsafe_allow_html=True)
 
 # 📊 Mostrar Gráficos en Layout Mejorado con Marcos
 g1, g2 = st.columns(2)
@@ -94,8 +115,6 @@ with g3:
 with g4:
     create_card("📉 Distribución de la Latencia", fig_boxplot)
 
-st.markdown("<div class='card'>", unsafe_allow_html=True)
-st.plotly_chart(fig_trend, use_container_width=True)
-st.markdown("</div>", unsafe_allow_html=True)
+create_card("📊 Tendencia de Uso de Recursos", fig_trend)
 
 st.success("✅ El tablero está listo y funcionando en Streamlit Cloud.")
