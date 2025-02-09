@@ -1,17 +1,18 @@
+# 📌 Tablero de Monitoreo del Sistema en Streamlit
 import streamlit as st
 import pandas as pd
 import plotly.express as px
 import os
-import time
 
 # 📥 Cargar Dataset
-ruta_dataset = "dataset_procesado.csv"
-if not os.path.exists(ruta_dataset):
+DATASET_URL = "dataset_procesado.csv"  # Reemplázalo con una URL pública si es necesario
+if not os.path.exists(DATASET_URL):
     st.error("❌ Error: El dataset no se encuentra en la ruta especificada.")
-else:
-    df = pd.read_csv(ruta_dataset)
-    df.columns = df.columns.str.strip()
-    df['Fecha'] = pd.to_datetime(df['Fecha'])
+    st.stop()
+
+df = pd.read_csv(DATASET_URL)
+df.columns = df.columns.str.strip()
+df['Fecha'] = pd.to_datetime(df['Fecha'])
 
 # 📊 Generar Datos de Estado
 estado_counts = df["Estado del Sistema"].value_counts().reset_index()
@@ -29,6 +30,8 @@ fig_bar = px.bar(df_avg, x="Estado del Sistema", y=["Uso CPU (%)", "Memoria Util
 fig_boxplot = px.box(df, x="Estado del Sistema", y="Latencia Red (ms)", color="Estado del Sistema", title="📉 Distribución de la Latencia")
 
 # 🖥️ Configurar Interfaz en Streamlit
+st.set_page_config(page_title="Tablero de Monitoreo", page_icon="📊", layout="wide")
+
 st.title("📊 Tablero de Monitoreo del Sistema")
 st.subheader("📌 KPIs del Sistema")
 
@@ -45,7 +48,7 @@ estado_seleccionado = st.selectbox("Selecciona el Estado del Sistema:", df["Esta
 df_filtrado = df[df["Estado del Sistema"] == estado_seleccionado]
 fig_trend = px.scatter(df_filtrado, x="Fecha", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], title=f"Tendencia de Uso de Recursos - {estado_seleccionado}")
 
-# 📊 Mostrar Gráficos
+# 📊 Mostrar Gráficos en Pestañas
 tabs = st.tabs(["Distribución", "Evolución", "Uso de Recursos", "Latencia", "Tendencia"])
 with tabs[0]:
     st.plotly_chart(fig_pie)
@@ -58,4 +61,6 @@ with tabs[3]:
 with tabs[4]:
     st.plotly_chart(fig_trend)
 
-# 🎬 Para ejecutar en local: `streamlit run app.py`
+# 🔄 Nota: No se necesita Ngrok para Streamlit Cloud
+
+st.success("✅ El tablero está listo y funcionando en Streamlit Cloud.")
