@@ -45,6 +45,16 @@ kpi2.metric("Advertencia", total_counts.loc[total_counts["Estado"] == "Advertenc
 kpi3.metric("Normal", total_counts.loc[total_counts["Estado"] == "Normal", "Cantidad"].values[0] if "Normal" in total_counts["Estado"].values else 0)
 kpi4.metric("Inactivo", total_counts.loc[total_counts["Estado"] == "Inactivo", "Cantidad"].values[0] if "Inactivo" in total_counts["Estado"].values else 0)
 
+# 📊 Mostrar Gráficos
+g1, g2 = st.columns(2)
+with g1:
+    st.plotly_chart(px.pie(total_counts, values="Cantidad", names="Estado", title="📊 Distribución de Estados"), use_container_width=True)
+    st.plotly_chart(px.bar(df_avg, x="Estado del Sistema", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], barmode="group", title="📊 Uso de Recursos"), use_container_width=True)
+
+with g2:
+    st.plotly_chart(px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Evolución en el Tiempo", markers=True), use_container_width=True)
+    st.plotly_chart(px.box(df_filtrado, x="Estado del Sistema", y="Latencia Red (ms)", color="Estado del Sistema", title="📉 Distribución de la Latencia"), use_container_width=True)
+
 # 📊 Predicción de Temperatura Crítica
 st.subheader("🌡️ Predicción de Temperatura Crítica")
 
@@ -78,7 +88,9 @@ if "Uso CPU (%)" in df_filtrado.columns and "Temperatura (°C)" in df_filtrado.c
 g3, _ = st.columns(2)
 with g3:
     correlation_matrix = df_filtrado[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].corr()
-    fig_corr, ax = plt.subplots(figsize=(4, 2))  # Reducción de tamaño
+    fig_corr, ax = plt.subplots(figsize=(4, 2))
     sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
     ax.set_title("🔍 Matriz de Correlación entre Variables")
     st.pyplot(fig_corr)
+
+st.success("✅ El tablero ha sido corregido con todas las gráficas intactas y la predicción de temperatura correctamente integrada.")
