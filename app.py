@@ -1,66 +1,69 @@
-# 📌 Tablero de Monitoreo del Sistema en Streamlit
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import os
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix, classification_report, roc_curve, auc
 
-# 📥 Cargar Dataset
-DATASET_URL = "dataset_procesado.csv"  # Reemplázalo con una URL pública si es necesario
-if not os.path.exists(DATASET_URL):
-    st.error("❌ Error: El dataset no se encuentra en la ruta especificada.")
-    st.stop()
+# Cargar datasets
+df_infra = pd.read_csv("dataset_procesado.csv")
+df_modelo = pd.read_csv("dataset_monitoreo_servers.csv")
 
-df = pd.read_csv(DATASET_URL)
-df.columns = df.columns.str.strip()
-df['Fecha'] = pd.to_datetime(df['Fecha'])
+# Convertir fechas
+df_infra['Fecha'] = pd.to_datetime(df_infra['Fecha'])
+df_modelo['Fecha'] = pd.to_datetime(df_modelo['Fecha'])
 
-# 📊 Generar Datos de Estado
-estado_counts = df["Estado del Sistema"].value_counts().reset_index()
-estado_counts.columns = ["Estado", "Cantidad"]
-
-df_grouped = df.groupby(["Fecha", "Estado del Sistema"]).size().reset_index(name="Cantidad")
-df_grouped["Cantidad_Suavizada"] = df_grouped.groupby("Estado del Sistema")["Cantidad"].transform(lambda x: x.rolling(7, min_periods=1).mean())
-
-df_avg = df.groupby("Estado del Sistema")[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].mean().reset_index()
-
-# 🎨 Crear Gráficos
-fig_pie = px.pie(estado_counts, values="Cantidad", names="Estado", title="📊 Distribución de Estados")
-fig_line = px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Evolución en el Tiempo", markers=True)
-fig_bar = px.bar(df_avg, x="Estado del Sistema", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], barmode="group", title="📊 Uso de Recursos")
-fig_boxplot = px.box(df, x="Estado del Sistema", y="Latencia Red (ms)", color="Estado del Sistema", title="📉 Distribución de la Latencia")
-
-# 🖥️ Configurar Interfaz en Streamlit
-st.set_page_config(page_title="Tablero de Monitoreo", page_icon="📊", layout="wide")
-
+# Configurar tablero
+st.set_page_config(page_title="Tablero de Monitoreo", layout="wide")
 st.title("📊 Tablero de Monitoreo del Sistema")
-st.subheader("📌 KPIs del Sistema")
 
-# 📌 Mostrar métricas clave
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Crítico", estado_counts.loc[estado_counts["Estado"] == "Crítico", "Cantidad"].values[0])
-col2.metric("Advertencia", estado_counts.loc[estado_counts["Estado"] == "Advertencia", "Cantidad"].values[0])
-col3.metric("Normal", estado_counts.loc[estado_counts["Estado"] == "Normal", "Cantidad"].values[0])
-col4.metric("Inactivo", estado_counts.loc[estado_counts["Estado"] == "Inactivo", "Cantidad"].values[0])
+# Crear pestañas
+tabs = st.tabs(["Infraestructura", "Modelo"])
 
-# 📌 Filtros
-estado_seleccionado = st.selectbox("Selecciona el Estado del Sistema:", df["Estado del Sistema"].unique())
-
-df_filtrado = df[df["Estado del Sistema"] == estado_seleccionado]
-fig_trend = px.scatter(df_filtrado, x="Fecha", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], title=f"Tendencia de Uso de Recursos - {estado_seleccionado}")
-
-# 📊 Mostrar Gráficos en Pestañas
-tabs = st.tabs(["Distribución", "Evolución", "Uso de Recursos", "Latencia", "Tendencia"])
+### Pestaña 1: Infraestructura
 with tabs[0]:
-    st.plotly_chart(fig_pie)
+    st.header("🔧 Infraestructura - Estado de los Servidores")
+    
+    # KPIs principales
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("Crítico", df_infra[df_infra["Estado del Sistema"] == "Crítico"].shape[0])
+    col2.metric("Advertencia", df_infra[df_infra["Estado del Sistema"] == "Advertencia"].shape[0])
+    col3.metric("Normal", df_infra[df_infra["Estado del Sistema"] == "Normal"].shape[0])
+    col4.metric("Inactivo", df_infra[df_infra["Estado del Sistema"] == "Inactivo"].shape[0])
+    
+    # Gráficos
+    fig_pie = px.pie(df_infra, names="Estado del Sistema", title="Distribución de Estados")
+    fig_line = px.line(df_infra, x="Fecha", y="Uso CPU (%)", color="Estado del Sistema", title="Evolución del Uso de CPU")
+    
+    st.plotly_chart(fig_pie, use_container_width=True)
+    st.plotly_chart(fig_line, use_container_width=True)
+
+### Pestaña 2: Modelo
 with tabs[1]:
-    st.plotly_chart(fig_line)
-with tabs[2]:
-    st.plotly_chart(fig_bar)
-with tabs[3]:
-    st.plotly_chart(fig_boxplot)
-with tabs[4]:
-    st.plotly_chart(fig_trend)
-
-# 🔄 Nota: No se necesita Ngrok para Streamlit Cloud
-
-st.success("✅ El tablero está listo y funcionando en Streamlit Cloud.")
+    st.header("📈 Evaluación del Modelo Predictivo")
+    
+    # Métricas del modelo
+    y_real = df_modelo['Etiqueta Real']
+    y_pred = df_modelo['Predicción Modelo']
+    cm = confusion_matrix(y_real, y_pred)
+    report = classification_report(y_real, y_pred, output_dict=True)
+    
+    # Gráfico de Matriz de Confusión
+    fig, ax = plt.subplots()
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=set(y_real), yticklabels=set(y_real))
+    plt.xlabel("Predicción")
+    plt.ylabel("Real")
+    plt.title("Matriz de Confusión")
+    st.pyplot(fig)
+    
+    # Mostrar reporte
+    st.text("Reporte de Clasificación:")
+    st.json(report)
+    
+    # Curva ROC
+    fpr, tpr, _ = roc_curve(y_real, y_pred)
+    roc_auc = auc(fpr, tpr)
+    fig_roc = px.area(x=fpr, y=tpr, title=f"Curva ROC (AUC = {roc_auc:.2f})", labels=dict(x='FPR', y='TPR'))
+    st.plotly_chart(fig_roc, use_container_width=True)
+    
+st.success("✅ Tablero cargado correctamente")
