@@ -22,7 +22,7 @@ df['Fecha'] = pd.to_datetime(df['Fecha'])
 estados_seleccionados = st.multiselect("Selecciona uno o más Estados:", df["Estado del Sistema"].unique(), default=df["Estado del Sistema"].unique())
 df_filtrado = df[df["Estado del Sistema"].isin(estados_seleccionados)]
 
-# 💊 Generar Datos de Estado
+# 💫 Generar Datos de Estado
 total_counts = df_filtrado["Estado del Sistema"].value_counts().reset_index()
 total_counts.columns = ["Estado", "Cantidad"]
 
@@ -33,45 +33,31 @@ df_avg = df_filtrado.groupby("Estado del Sistema")[["Uso CPU (%)", "Memoria Util
 
 # 🎨 Crear Gráficos con Datos Filtrados
 fig_pie = px.pie(total_counts, values="Cantidad", names="Estado", title="📊 Distribución de Estados", color_discrete_sequence=px.colors.qualitative.Set1)
+st.markdown("**Interpretación:** Este gráfico muestra la distribución de estados del sistema en porcentajes, permitiendo identificar la proporción de cada estado.")
+
 fig_line = px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Evolución en el Tiempo", markers=True, color_discrete_sequence=px.colors.qualitative.Set2)
+st.markdown("**Interpretación:** Representa la evolución temporal de cada estado del sistema, permitiendo detectar tendencias y fluctuaciones a lo largo del tiempo.")
+
 fig_bar = px.bar(df_avg, x="Estado del Sistema", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], barmode="group", title="📊 Uso de Recursos", color_discrete_sequence=px.colors.qualitative.Set3)
+st.markdown("**Interpretación:** Comparación del uso promedio de CPU, memoria y carga de red según el estado del sistema, permitiendo evaluar diferencias en consumo de recursos.")
+
 fig_boxplot = px.box(df_filtrado, x="Estado del Sistema", y="Latencia Red (ms)", color="Estado del Sistema", title="📉 Distribución de la Latencia", color_discrete_sequence=px.colors.qualitative.Set1)
+st.markdown("**Interpretación:** Muestra la distribución de la latencia de red para cada estado del sistema, permitiendo identificar valores atípicos y dispersión de los datos.")
 
 fig_trend = px.scatter(df_filtrado.melt(id_vars=["Fecha"], value_vars=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], var_name="Variable", value_name="Valor"), x="Fecha", y="Valor", color="Variable", title="📊 Tendencia de Uso de Recursos", color_discrete_sequence=px.colors.qualitative.Set2)
+st.markdown("**Interpretación:** Analiza la evolución temporal del uso de CPU, memoria y carga de red, permitiendo identificar patrones de comportamiento en el tiempo.")
 
 # 🔥 Indicador de Predicción de Fallas (Simulación con Tendencia Lineal)
 df_grouped['Predicción'] = df_grouped.groupby("Estado del Sistema")["Cantidad_Suavizada"].transform(lambda x: x.shift(-1))
 fig_pred = px.line(df_grouped, x="Fecha", y=["Cantidad_Suavizada", "Predicción"], color="Estado del Sistema", title="📈 Predicción de Estados del Sistema", markers=True)
+st.markdown("**Interpretación:** Permite visualizar una estimación de la evolución futura de los estados del sistema basada en datos históricos.")
 
 # 🔥 Matriz de Correlación
 correlation_matrix = df_filtrado[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].corr()
 fig_corr, ax = plt.subplots(figsize=(6, 4))  # Ajuste de tamaño
 sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
 ax.set_title("🔍 Matriz de Correlación entre Variables")
-
-# 📌 Diseño Mejorado
-st.markdown("""
-    <style>
-        .title-container {
-            text-align: center;
-            font-size: 2.5em;
-            font-weight: bold;
-            margin-bottom: 20px;
-        }
-        .card {
-            background-color: #1E1E1E;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 2px 2px 10px rgba(255, 255, 255, 0.2);
-            margin-bottom: 10px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            text-align: center;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-st.markdown("<div class='title-container'>📊 Tablero de Monitoreo del Sistema</div>", unsafe_allow_html=True)
-st.subheader("📌 KPIs del Sistema")
+st.markdown("**Interpretación:** Muestra la relación entre las variables de uso de CPU, memoria y carga de red, permitiendo identificar posibles dependencias entre ellas.")
 
 # 📊 Mostrar Gráficos con Mejor Distribución
 g1, g2 = st.columns(2)
@@ -88,4 +74,4 @@ with g3:
 with g4:
     st.pyplot(fig_corr)
 
-st.success("✅ El tablero ha sido actualizado con predicción y análisis de correlación correctamente distribuidos.")
+st.success("✅ El tablero ha sido actualizado con explicaciones debajo de cada gráfico.")
