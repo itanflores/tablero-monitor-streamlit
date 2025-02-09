@@ -56,7 +56,7 @@ with col2:
 # 🔥 Matriz de Correlación
 st.subheader("🔍 Matriz de Correlación entre Variables")
 correlation_matrix = df_filtrado[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].corr()
-fig_corr, ax = plt.subplots(figsize=(1, 1))
+fig_corr, ax = plt.subplots(figsize=(3, 1.5))  # Reducción de tamaño
 sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
 st.pyplot(fig_corr)
 
