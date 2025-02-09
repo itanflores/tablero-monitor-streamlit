@@ -3,6 +3,9 @@ import pandas as pd
 import plotly.express as px
 import os
 
+# 🛠️ Configurar página antes que cualquier otro elemento de Streamlit
+st.set_page_config(page_title="Tablero de Monitoreo", page_icon="📊", layout="wide")
+
 # 📥 Cargar Dataset
 DATASET_URL = "dataset_procesado.csv"
 if not os.path.exists(DATASET_URL):
@@ -43,9 +46,7 @@ fig_line = px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado 
 fig_bar = px.bar(df_avg, x="Estado del Sistema", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], barmode="group", title="📊 Uso de Recursos")
 fig_boxplot = px.box(df, x="Estado del Sistema", y="Latencia Red (ms)", color="Estado del Sistema", title="📉 Distribución de la Latencia")
 
-# 🖥️ Configurar Interfaz en Streamlit
-st.set_page_config(page_title="Tablero de Monitoreo", page_icon="📊", layout="wide")
-
+# 📊 Mostrar Interfaz en Streamlit
 st.title("📊 Tablero de Monitoreo del Sistema")
 st.subheader("📌 KPIs del Sistema")
 
