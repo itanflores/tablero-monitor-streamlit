@@ -56,12 +56,14 @@ for estado in df_pred["Estado del Sistema"].unique():
         X = df_estado[["Días"]]
         y = df_estado[["Cantidad_Suavizada"]]
         model.fit(X, y)
-        future_dates = np.array(range(df_pred["Días"].max() + 1, df_pred["Días"].max() + 1 + future_days)).reshape(-1, 1)
-        future_predictions = model.predict(future_dates)
-        future_df = pd.DataFrame({"Fecha": df_pred["Fecha"].max() + pd.to_timedelta(future_dates.flatten(), unit='D'),
-                                  "Cantidad_Suavizada": future_predictions.flatten(),
-                                  "Estado del Sistema": estado})
-        df_pred = pd.concat([df_pred, future_df], ignore_index=True)
+        max_days = df_pred["Días"].max()
+        if not np.isnan(max_days):
+            future_dates = np.array(range(int(max_days) + 1, int(max_days) + 1 + future_days)).reshape(-1, 1)
+            future_predictions = model.predict(future_dates)
+            future_df = pd.DataFrame({"Fecha": df_pred["Fecha"].max() + pd.to_timedelta(future_dates.flatten(), unit='D'),
+                                      "Cantidad_Suavizada": future_predictions.flatten(),
+                                      "Estado del Sistema": estado})
+            df_pred = pd.concat([df_pred, future_df], ignore_index=True)
 
 g3, g4 = st.columns(2)
 with g3:
