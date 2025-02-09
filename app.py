@@ -1,54 +1,61 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import seaborn as sns
-import matplotlib.pyplot as plt
+import os
+import time
 
-# Cargar los datasets
-df_infraestructura = pd.read_csv("dataset_procesado.csv")
-df_modelo = pd.read_csv("dataset_monitoreo_servers.csv")
+# 📥 Cargar Dataset
+ruta_dataset = "dataset_procesado.csv"
+if not os.path.exists(ruta_dataset):
+    st.error("❌ Error: El dataset no se encuentra en la ruta especificada.")
+else:
+    df = pd.read_csv(ruta_dataset)
+    df.columns = df.columns.str.strip()
+    df['Fecha'] = pd.to_datetime(df['Fecha'])
 
-# Limpiar nombres de columnas
-df_infraestructura.columns = df_infraestructura.columns.str.strip()
-df_modelo.columns = df_modelo.columns.str.strip()
+# 📊 Generar Datos de Estado
+estado_counts = df["Estado del Sistema"].value_counts().reset_index()
+estado_counts.columns = ["Estado", "Cantidad"]
 
-# Configurar la interfaz del tablero
-st.set_page_config(page_title="Tablero de Monitoreo", layout="wide")
+df_grouped = df.groupby(["Fecha", "Estado del Sistema"]).size().reset_index(name="Cantidad")
+df_grouped["Cantidad_Suavizada"] = df_grouped.groupby("Estado del Sistema")["Cantidad"].transform(lambda x: x.rolling(7, min_periods=1).mean())
+
+df_avg = df.groupby("Estado del Sistema")[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].mean().reset_index()
+
+# 🎨 Crear Gráficos
+fig_pie = px.pie(estado_counts, values="Cantidad", names="Estado", title="📊 Distribución de Estados")
+fig_line = px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Evolución en el Tiempo", markers=True)
+fig_bar = px.bar(df_avg, x="Estado del Sistema", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], barmode="group", title="📊 Uso de Recursos")
+fig_boxplot = px.box(df, x="Estado del Sistema", y="Latencia Red (ms)", color="Estado del Sistema", title="📉 Distribución de la Latencia")
+
+# 🖥️ Configurar Interfaz en Streamlit
 st.title("📊 Tablero de Monitoreo del Sistema")
+st.subheader("📌 KPIs del Sistema")
 
-st.header("📌 Indicadores de Monitoreo de Infraestructura")
-
-# KPIs principales
+# 📌 Mostrar métricas clave
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("Crítico", df_infraestructura[df_infraestructura["Estado del Sistema"] == "Crítico"].shape[0])
-col2.metric("Advertencia", df_infraestructura[df_infraestructura["Estado del Sistema"] == "Advertencia"].shape[0])
-col3.metric("Normal", df_infraestructura[df_infraestructura["Estado del Sistema"] == "Normal"].shape[0])
-col4.metric("Inactivo", df_infraestructura[df_infraestructura["Estado del Sistema"] == "Inactivo"].shape[0])
+col1.metric("Crítico", estado_counts.loc[estado_counts["Estado"] == "Crítico", "Cantidad"].values[0])
+col2.metric("Advertencia", estado_counts.loc[estado_counts["Estado"] == "Advertencia", "Cantidad"].values[0])
+col3.metric("Normal", estado_counts.loc[estado_counts["Estado"] == "Normal", "Cantidad"].values[0])
+col4.metric("Inactivo", estado_counts.loc[estado_counts["Estado"] == "Inactivo", "Cantidad"].values[0])
 
-# Gráfico de distribución de estados
-fig_estado = px.pie(df_infraestructura, names="Estado del Sistema", title="Distribución de Estados")
-st.plotly_chart(fig_estado, use_container_width=True)
+# 📌 Filtros
+estado_seleccionado = st.selectbox("Selecciona el Estado del Sistema:", df["Estado del Sistema"].unique())
 
-# Gráfico de uso de recursos
-fig_recursos = px.bar(df_infraestructura, x="Estado del Sistema", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], barmode="group", title="Uso de Recursos por Estado")
-st.plotly_chart(fig_recursos, use_container_width=True)
+df_filtrado = df[df["Estado del Sistema"] == estado_seleccionado]
+fig_trend = px.scatter(df_filtrado, x="Fecha", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], title=f"Tendencia de Uso de Recursos - {estado_seleccionado}")
 
-st.header("📌 Análisis del Modelo Predictivo")
+# 📊 Mostrar Gráficos
+tabs = st.tabs(["Distribución", "Evolución", "Uso de Recursos", "Latencia", "Tendencia"])
+with tabs[0]:
+    st.plotly_chart(fig_pie)
+with tabs[1]:
+    st.plotly_chart(fig_line)
+with tabs[2]:
+    st.plotly_chart(fig_bar)
+with tabs[3]:
+    st.plotly_chart(fig_boxplot)
+with tabs[4]:
+    st.plotly_chart(fig_trend)
 
-# Visualización del rendimiento del modelo
-if "Precisión Modelo" in df_modelo.columns:
-    st.subheader("📈 Precisión del Modelo")
-    fig_precision = px.histogram(df_modelo, x="Precisión Modelo", title="Distribución de Precisión del Modelo")
-    st.plotly_chart(fig_precision, use_container_width=True)
-
-# Comparación de eficiencia si existe
-if "Eficiencia Comparativa" in df_modelo.columns:
-    st.subheader("📊 Comparativa de Eficiencia")
-    fig_eficiencia = px.box(df_modelo, y="Eficiencia Comparativa", title="Distribución de la Eficiencia del Modelo")
-    st.plotly_chart(fig_eficiencia, use_container_width=True)
-
-# Relación entre métricas clave
-if "Uso CPU (%)" in df_modelo.columns and "Temperatura (°C)" in df_modelo.columns:
-    st.subheader("📉 Relación Uso de CPU vs Temperatura")
-    fig_correlation = px.scatter(df_modelo, x="Uso CPU (%)", y="Temperatura (°C)", color="Estado del Sistema", title="Relación entre Uso de CPU y Temperatura")
-    st.plotly_chart(fig_correlation, use_container_width=True)
+# 🎬 Para ejecutar en local: `streamlit run app.py`
