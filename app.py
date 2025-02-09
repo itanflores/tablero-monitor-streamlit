@@ -46,10 +46,14 @@ kpi4.metric("Inactivo", total_counts.loc[total_counts["Estado"] == "Inactivo", "
 col1, col2 = st.columns(2)
 with col1:
     st.plotly_chart(px.pie(total_counts, values="Cantidad", names="Estado", title="📊 Distribución de Estados"), use_container_width=True)
+    st.write("Este gráfico muestra la proporción de cada estado del sistema en el dataset. Útil para identificar tendencias y anomalías.")
     st.plotly_chart(px.bar(df_avg, x="Estado del Sistema", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], barmode="group", title="📊 Uso de Recursos"), use_container_width=True)
+    st.write("Este gráfico compara el uso promedio de CPU, memoria y carga de red según el estado del sistema.")
 with col2:
     st.plotly_chart(px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Evolución en el Tiempo", markers=True), use_container_width=True)
+    st.write("Este gráfico representa la evolución temporal de los estados del sistema, permitiendo visualizar patrones y tendencias a lo largo del tiempo.")
     st.plotly_chart(px.scatter(df_filtrado, x="Uso CPU (%)", y="Memoria Utilizada (%)", color="Estado del Sistema", title="📊 Relación entre Uso de CPU y Memoria"), use_container_width=True)
+    st.write("Este gráfico muestra la relación entre el uso de CPU y la memoria utilizada, lo que ayuda a identificar cuellos de botella en el sistema.")
 
 # 🔹 Sección 2: Sección de Pronósticos
 st.header("📈 Sección de Pronósticos")
@@ -78,6 +82,7 @@ for estado in df_grouped["Estado del Sistema"].unique():
 
 df_pred_final = pd.concat([df_grouped] + predicciones, ignore_index=True)
 st.plotly_chart(px.line(df_pred_final, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Predicción de Estados del Sistema", markers=True), use_container_width=True)
+st.write("Este gráfico presenta la predicción de la cantidad de eventos por estado del sistema en los próximos meses.")
 
 # 📌 Predicción de Temperatura Crítica
 st.subheader("🌡️ Predicción de Temperatura Crítica")
@@ -92,3 +97,4 @@ if "Uso CPU (%)" in df_filtrado.columns and "Temperatura (°C)" in df_filtrado.c
     future_temp_pred = model_temp.predict(future_data)
     df_future_temp = pd.DataFrame({"Fecha": pd.date_range(start=df_temp["Fecha"].max(), periods=12, freq="M"), "Temperatura Predicha (°C)": future_temp_pred})
     st.plotly_chart(px.line(df_future_temp, x="Fecha", y="Temperatura Predicha (°C)", title="📈 Predicción de Temperatura Crítica", markers=True), use_container_width=True)
+    st.write("Este gráfico predice la temperatura crítica en función del uso de CPU y la carga de red.")
