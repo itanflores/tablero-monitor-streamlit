@@ -47,7 +47,7 @@ cpu_min, cpu_max = st.slider("Filtrar Uso CPU (%)", int(df["Uso CPU (%)"].min())
 df = df[(df["Uso CPU (%)"] >= cpu_min) & (df["Uso CPU (%)"] <= cpu_max)]
 
 if st.button("Restablecer Filtros"):
-    st.experimental_rerun()
+    st.rerun()
 
 # 📊 Mostrar métricas clave
 col1, col2, col3, col4 = st.columns(4)
