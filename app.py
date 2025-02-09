@@ -36,7 +36,8 @@ st.subheader("📌 KPIs del Sistema")
 
 # 📌 Filtros
 fecha_min, fecha_max = df["Fecha"].min(), df["Fecha"].max()
-fecha_seleccionada = st.date_input("Selecciona un rango de fechas:", [fecha_min, fecha_max], fecha_min, fecha_max)
+fecha_seleccionada = st.date_input("Selecciona un rango de fechas:", [fecha_min.date(), fecha_max.date()], fecha_min.date(), fecha_max.date())
+fecha_seleccionada = [pd.to_datetime(fecha) for fecha in fecha_seleccionada]
 df = df[(df["Fecha"] >= fecha_seleccionada[0]) & (df["Fecha"] <= fecha_seleccionada[1])]
 
 estados_seleccionados = st.multiselect("Selecciona uno o más Estados:", df["Estado del Sistema"].unique(), default=df["Estado del Sistema"].unique())
