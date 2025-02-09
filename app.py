@@ -27,6 +27,9 @@ estados_seleccionados = st.multiselect("Selecciona uno o más Estados:", df["Est
 df_filtrado = df[df["Estado del Sistema"].isin(estados_seleccionados)]
 
 # 📌 Cálculo de nuevas métricas
+# Evitar divisiones por cero en eficiencia térmica
+df_filtrado = df_filtrado.replace({"Temperatura (°C)": {0: np.nan}})
+df_filtrado.dropna(subset=["Temperatura (°C)"], inplace=True)
 df_filtrado["Eficiencia Térmica"] = df_filtrado["Uso CPU (%)"] / df_filtrado["Temperatura (°C)"]
 df_filtrado["Eventos Críticos"] = df_filtrado["Estado del Sistema"].apply(lambda x: 1 if x == "Crítico" else 0)
 
@@ -43,6 +46,7 @@ with col1:
     st.plotly_chart(px.bar(df_filtrado, x="Estado del Sistema", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], barmode="group", title="📊 Uso de Recursos"), use_container_width=True)
 with col2:
     st.plotly_chart(px.scatter(df_filtrado, x="Uso CPU (%)", y="Temperatura (°C)", color="Estado del Sistema", title="📊 Relación entre Uso de CPU y Temperatura"), use_container_width=True)
+    st.plotly_chart(px.box(df_filtrado, y=["Uso CPU (%)", "Temperatura (°C)"], title="📊 Distribución de Outliers"), use_container_width=True)
 
 # 🔹 Sección 2: Modelado Predictivo
 st.header("📈 Predicción de Estados del Sistema")
@@ -57,6 +61,10 @@ model.fit(X, y)
 importances = model.feature_importances_
 feature_importance_df = pd.DataFrame({"Feature": features, "Importancia": importances}).sort_values(by="Importancia", ascending=False)
 st.plotly_chart(px.bar(feature_importance_df, x="Feature", y="Importancia", title="📊 Importancia de Variables en la Predicción"), use_container_width=True)
+
+# Mostrar métricas del modelo
+st.subheader("📊 Evaluación del Modelo Predictivo")
+st.write(f"Precisión del modelo: {model.score(X, y):.2f}")
 
 # 🔹 Sección 3: Alertas Dinámicas
 st.header("⚠️ Alertas del Sistema")
