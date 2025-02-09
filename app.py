@@ -32,14 +32,6 @@ df_grouped["Cantidad_Suavizada"] = df_grouped.groupby("Estado del Sistema")["Can
 df_avg = df_filtrado.groupby("Estado del Sistema")[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].mean().reset_index()
 
 # 🎨 Crear Gráficos con Datos Filtrados
-def create_card(title, fig):
-    st.markdown(f"""
-        <div class='card'>
-            <h3>{title}</h3>
-        </div>
-    """, unsafe_allow_html=True)
-    st.plotly_chart(fig, use_container_width=True)
-
 fig_pie = px.pie(total_counts, values="Cantidad", names="Estado", title="📊 Distribución de Estados", color_discrete_sequence=px.colors.qualitative.Set1)
 fig_line = px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Evolución en el Tiempo", markers=True, color_discrete_sequence=px.colors.qualitative.Set2)
 fig_bar = px.bar(df_avg, x="Estado del Sistema", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], barmode="group", title="📊 Uso de Recursos", color_discrete_sequence=px.colors.qualitative.Set3)
@@ -66,11 +58,6 @@ st.markdown("""
             font-weight: bold;
             margin-bottom: 20px;
         }
-        .metric-container {
-            display: flex;
-            justify-content: space-around;
-            gap: 15px;
-        }
         .card {
             background-color: #1E1E1E;
             padding: 15px;
@@ -89,15 +76,15 @@ st.subheader("📌 KPIs del Sistema")
 # 📊 Mostrar Gráficos con Mejor Distribución
 g1, g2 = st.columns(2)
 with g1:
-    create_card("📊 Distribución de Estados", fig_pie)
-    create_card("📊 Uso de Recursos", fig_bar)
+    st.plotly_chart(fig_pie, use_container_width=True)
+    st.plotly_chart(fig_bar, use_container_width=True)
 with g2:
-    create_card("📈 Evolución en el Tiempo", fig_line)
-    create_card("📉 Distribución de la Latencia", fig_boxplot)
+    st.plotly_chart(fig_line, use_container_width=True)
+    st.plotly_chart(fig_boxplot, use_container_width=True)
 
 g3, g4 = st.columns(2)
 with g3:
-    create_card("📊 Predicción de Estados del Sistema", fig_pred)
+    st.plotly_chart(fig_pred, use_container_width=True)
 with g4:
     st.pyplot(fig_corr)
 
