@@ -17,21 +17,13 @@ df.columns = df.columns.str.strip()
 df['Fecha'] = pd.to_datetime(df['Fecha'])
 
 # 📌 Filtros
-fecha_min, fecha_max = df["Fecha"].min(), df["Fecha"].max()
-fecha_seleccionada = st.date_input("Selecciona un rango de fechas:", [fecha_min.date(), fecha_max.date()], fecha_min.date(), fecha_max.date())
-fecha_seleccionada = [pd.to_datetime(fecha) for fecha in fecha_seleccionada]
-df_filtrado = df[(df["Fecha"] >= fecha_seleccionada[0]) & (df["Fecha"] <= fecha_seleccionada[1])]
-
-estados_seleccionados = st.multiselect("Selecciona uno o más Estados:", df_filtrado["Estado del Sistema"].unique(), default=df_filtrado["Estado del Sistema"].unique())
-df_filtrado = df_filtrado[df_filtrado["Estado del Sistema"].isin(estados_seleccionados)]
-
-cpu_min, cpu_max = st.slider("Filtrar Uso CPU (%)", int(df_filtrado["Uso CPU (%)"].min()), int(df_filtrado["Uso CPU (%)"].max()), (int(df_filtrado["Uso CPU (%)"].min()), int(df_filtrado["Uso CPU (%)"].max())))
-df_filtrado = df_filtrado[(df_filtrado["Uso CPU (%)"] >= cpu_min) & (df_filtrado["Uso CPU (%)"] <= cpu_max)]
+estados_seleccionados = st.multiselect("Selecciona uno o más Estados:", df["Estado del Sistema"].unique(), default=df["Estado del Sistema"].unique())
+df_filtrado = df[df["Estado del Sistema"].isin(estados_seleccionados)]
 
 if st.button("Restablecer Filtros"):
     st.experimental_rerun()
 
-# 📊 Generar Datos de Estado
+# 💊 Generar Datos de Estado
 total_counts = df_filtrado["Estado del Sistema"].value_counts().reset_index()
 total_counts.columns = ["Estado", "Cantidad"]
 
