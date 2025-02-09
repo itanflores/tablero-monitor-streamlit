@@ -53,10 +53,9 @@ fig_pred = px.line(df_grouped, x="Fecha", y=["Cantidad_Suavizada", "Predicción"
 
 # 🔥 Matriz de Correlación
 correlation_matrix = df_filtrado[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].corr()
-fig_corr, ax = plt.subplots()
+fig_corr, ax = plt.subplots(figsize=(6, 4))  # Ajuste de tamaño
 sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
 ax.set_title("🔍 Matriz de Correlación entre Variables")
-st.pyplot(fig_corr)
 
 # 📌 Diseño Mejorado
 st.markdown("""
@@ -87,20 +86,19 @@ st.markdown("""
 st.markdown("<div class='title-container'>📊 Tablero de Monitoreo del Sistema</div>", unsafe_allow_html=True)
 st.subheader("📌 KPIs del Sistema")
 
-# 📊 Mostrar Gráficos con Nuevos Indicadores
+# 📊 Mostrar Gráficos con Mejor Distribución
 g1, g2 = st.columns(2)
 with g1:
     create_card("📊 Distribución de Estados", fig_pie)
+    create_card("📊 Uso de Recursos", fig_bar)
 with g2:
     create_card("📈 Evolución en el Tiempo", fig_line)
+    create_card("📉 Distribución de la Latencia", fig_boxplot)
 
 g3, g4 = st.columns(2)
 with g3:
-    create_card("📊 Uso de Recursos", fig_bar)
+    create_card("📊 Predicción de Estados del Sistema", fig_pred)
 with g4:
-    create_card("📉 Distribución de la Latencia", fig_boxplot)
+    st.pyplot(fig_corr)
 
-create_card("📊 Predicción de Estados del Sistema", fig_pred)
-create_card("🔍 Matriz de Correlación entre Variables", fig_corr)
-
-st.success("✅ El tablero ha sido actualizado con predicción y análisis de correlación.")
+st.success("✅ El tablero ha sido actualizado con predicción y análisis de correlación correctamente distribuidos.")
