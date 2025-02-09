@@ -3,10 +3,7 @@ import pandas as pd
 import plotly.express as px
 import os
 
-# 🛠️ Configurar página antes que cualquier otro elemento de Streamlit
-st.set_page_config(page_title="Tablero de Monitoreo", page_icon="📊", layout="wide")
-
-# 📥 Cargar Dataset
+# 💞 Cargar Dataset
 DATASET_URL = "dataset_procesado.csv"
 if not os.path.exists(DATASET_URL):
     st.error("❌ Error: El dataset no se encuentra en la ruta especificada.")
@@ -29,7 +26,7 @@ cpu_min, cpu_max = st.slider("Filtrar Uso CPU (%)", int(df["Uso CPU (%)"].min())
 df = df[(df["Uso CPU (%)"] >= cpu_min) & (df["Uso CPU (%)"] <= cpu_max)]
 
 if st.button("Restablecer Filtros"):
-    st.rerun()
+    st.experimental_rerun()
 
 # 📊 Generar Datos de Estado
 total_counts = df["Estado del Sistema"].value_counts().reset_index()
@@ -46,16 +43,22 @@ fig_line = px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado 
 fig_bar = px.bar(df_avg, x="Estado del Sistema", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], barmode="group", title="📊 Uso de Recursos")
 fig_boxplot = px.box(df, x="Estado del Sistema", y="Latencia Red (ms)", color="Estado del Sistema", title="📉 Distribución de la Latencia")
 
-# 📊 Mostrar Interfaz en Streamlit
+# 🔦 Manejo seguro de las métricas para evitar errores de índice
+def get_estado_count(estado):
+    return total_counts.loc[total_counts["Estado"] == estado, "Cantidad"].values[0] if estado in total_counts["Estado"].values else 0
+
+# 🖥️ Configurar Interfaz en Streamlit
+st.set_page_config(page_title="Tablero de Monitoreo", page_icon="📊", layout="wide")
+
 st.title("📊 Tablero de Monitoreo del Sistema")
 st.subheader("📌 KPIs del Sistema")
 
-# 📊 Mostrar métricas clave
+# 📊 Mostrar métricas clave con manejo de errores
 col1, col2, col3, col4 = st.columns(4)
-col1.metric("Crítico", total_counts.loc[total_counts["Estado"] == "Crítico", "Cantidad"].values[0])
-col2.metric("Advertencia", total_counts.loc[total_counts["Estado"] == "Advertencia", "Cantidad"].values[0])
-col3.metric("Normal", total_counts.loc[total_counts["Estado"] == "Normal", "Cantidad"].values[0])
-col4.metric("Inactivo", total_counts.loc[total_counts["Estado"] == "Inactivo", "Cantidad"].values[0])
+col1.metric("Crítico", get_estado_count("Crítico"))
+col2.metric("Advertencia", get_estado_count("Advertencia"))
+col3.metric("Normal", get_estado_count("Normal"))
+col4.metric("Inactivo", get_estado_count("Inactivo"))
 
 # 📊 Mostrar Gráficos
 st.plotly_chart(fig_pie, use_container_width=True)
