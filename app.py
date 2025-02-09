@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import seaborn as sns
+import matplotlib.pyplot as plt
 import os
 
 # 🛠️ Configurar la página antes que cualquier otro comando
@@ -42,11 +44,19 @@ fig_pie = px.pie(total_counts, values="Cantidad", names="Estado", title="📊 Di
 fig_line = px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Evolución en el Tiempo", markers=True, color_discrete_sequence=px.colors.qualitative.Set2)
 fig_bar = px.bar(df_avg, x="Estado del Sistema", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], barmode="group", title="📊 Uso de Recursos", color_discrete_sequence=px.colors.qualitative.Set3)
 fig_boxplot = px.box(df_filtrado, x="Estado del Sistema", y="Latencia Red (ms)", color="Estado del Sistema", title="📉 Distribución de la Latencia", color_discrete_sequence=px.colors.qualitative.Set1)
+
 fig_trend = px.scatter(df_filtrado.melt(id_vars=["Fecha"], value_vars=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], var_name="Variable", value_name="Valor"), x="Fecha", y="Valor", color="Variable", title="📊 Tendencia de Uso de Recursos", color_discrete_sequence=px.colors.qualitative.Set2)
 
-# 🔦 Manejo seguro de las métricas para evitar errores de índice
-def get_estado_count(estado):
-    return total_counts.loc[total_counts["Estado"] == estado, "Cantidad"].values[0] if estado in total_counts["Estado"].values else 0
+# 🔥 Indicador de Predicción de Fallas (Simulación con Tendencia Lineal)
+df_grouped['Predicción'] = df_grouped.groupby("Estado del Sistema")["Cantidad_Suavizada"].transform(lambda x: x.shift(-1))
+fig_pred = px.line(df_grouped, x="Fecha", y=["Cantidad_Suavizada", "Predicción"], color="Estado del Sistema", title="📈 Predicción de Estados del Sistema", markers=True)
+
+# 🔥 Matriz de Correlación
+correlation_matrix = df_filtrado[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].corr()
+fig_corr, ax = plt.subplots()
+sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
+ax.set_title("🔍 Matriz de Correlación entre Variables")
+st.pyplot(fig_corr)
 
 # 📌 Diseño Mejorado
 st.markdown("""
@@ -62,10 +72,6 @@ st.markdown("""
             justify-content: space-around;
             gap: 15px;
         }
-        .stButton>button {
-            background-color: #FF4B4B;
-            color: white;
-        }
         .card {
             background-color: #1E1E1E;
             padding: 15px;
@@ -75,49 +81,13 @@ st.markdown("""
             border: 2px solid rgba(255, 255, 255, 0.3);
             text-align: center;
         }
-        .metric-card {
-            background-color: #2A2A2A;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 2px 2px 10px rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            text-align: center;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        h3 {
-            color: white;
-            text-align: center;
-        }
     </style>
 """, unsafe_allow_html=True)
 
 st.markdown("<div class='title-container'>📊 Tablero de Monitoreo del Sistema</div>", unsafe_allow_html=True)
 st.subheader("📌 KPIs del Sistema")
 
-# 📊 Mostrar métricas clave con mejor diseño
-g1, g2, g3, g4 = st.columns(4)
-with g1:
-    st.markdown("<div class='metric-card'>", unsafe_allow_html=True)
-    st.metric("Crítico", get_estado_count("Crítico"))
-    st.markdown("</div>", unsafe_allow_html=True)
-with g2:
-    st.markdown("<div class='metric-card'>", unsafe_allow_html=True)
-    st.metric("Advertencia", get_estado_count("Advertencia"))
-    st.markdown("</div>", unsafe_allow_html=True)
-with g3:
-    st.markdown("<div class='metric-card'>", unsafe_allow_html=True)
-    st.metric("Normal", get_estado_count("Normal"))
-    st.markdown("</div>", unsafe_allow_html=True)
-with g4:
-    st.markdown("<div class='metric-card'>", unsafe_allow_html=True)
-    st.metric("Inactivo", get_estado_count("Inactivo"))
-    st.markdown("</div>", unsafe_allow_html=True)
-
-# 📊 Mostrar Gráficos en Layout Mejorado con Marcos
+# 📊 Mostrar Gráficos con Nuevos Indicadores
 g1, g2 = st.columns(2)
 with g1:
     create_card("📊 Distribución de Estados", fig_pie)
@@ -130,6 +100,7 @@ with g3:
 with g4:
     create_card("📉 Distribución de la Latencia", fig_boxplot)
 
-create_card("📊 Tendencia de Uso de Recursos", fig_trend)
+create_card("📊 Predicción de Estados del Sistema", fig_pred)
+create_card("🔍 Matriz de Correlación entre Variables", fig_corr)
 
-st.success("✅ El tablero está listo y funcionando en Streamlit Cloud.")
+st.success("✅ El tablero ha sido actualizado con predicción y análisis de correlación.")
