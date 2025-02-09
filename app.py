@@ -37,6 +37,7 @@ fig_pie = px.pie(total_counts, values="Cantidad", names="Estado", title="📊 Di
 fig_line = px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Evolución en el Tiempo", markers=True)
 fig_bar = px.bar(df_avg, x="Estado del Sistema", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], barmode="group", title="📊 Uso de Recursos")
 fig_boxplot = px.box(df_filtrado, x="Estado del Sistema", y="Latencia Red (ms)", color="Estado del Sistema", title="📉 Distribución de la Latencia")
+fig_trend = px.scatter(df_filtrado, x="Fecha", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], title="📊 Tendencia de Uso de Recursos")
 
 # 🔦 Manejo seguro de las métricas para evitar errores de índice
 def get_estado_count(estado):
@@ -57,5 +58,6 @@ st.plotly_chart(fig_pie, use_container_width=True)
 st.plotly_chart(fig_line, use_container_width=True)
 st.plotly_chart(fig_bar, use_container_width=True)
 st.plotly_chart(fig_boxplot, use_container_width=True)
+st.plotly_chart(fig_trend, use_container_width=True)
 
 st.success("✅ El tablero está listo y funcionando en Streamlit Cloud.")
