@@ -55,6 +55,7 @@ st.markdown("""
             text-align: center;
             font-size: 2em;
             font-weight: bold;
+            margin-bottom: 20px;
         }
         .metric-container {
             display: flex;
@@ -72,6 +73,16 @@ st.markdown("""
             box-shadow: 2px 2px 10px rgba(255, 255, 255, 0.2);
             margin-bottom: 10px;
             border: 2px solid rgba(255, 255, 255, 0.3);
+            text-align: center;
+        }
+        .metric-card {
+            background-color: #2A2A2A;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            text-align: center;
+            width: 100%;
         }
         h3 {
             color: white;
@@ -86,19 +97,19 @@ st.subheader("📌 KPIs del Sistema")
 # 📊 Mostrar métricas clave con mejor diseño
 g1, g2, g3, g4 = st.columns(4)
 with g1:
-    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.markdown("<div class='metric-card'>", unsafe_allow_html=True)
     st.metric("Crítico", get_estado_count("Crítico"))
     st.markdown("</div>", unsafe_allow_html=True)
 with g2:
-    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.markdown("<div class='metric-card'>", unsafe_allow_html=True)
     st.metric("Advertencia", get_estado_count("Advertencia"))
     st.markdown("</div>", unsafe_allow_html=True)
 with g3:
-    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.markdown("<div class='metric-card'>", unsafe_allow_html=True)
     st.metric("Normal", get_estado_count("Normal"))
     st.markdown("</div>", unsafe_allow_html=True)
 with g4:
-    st.markdown("<div class='card'>", unsafe_allow_html=True)
+    st.markdown("<div class='metric-card'>", unsafe_allow_html=True)
     st.metric("Inactivo", get_estado_count("Inactivo"))
     st.markdown("</div>", unsafe_allow_html=True)
 
