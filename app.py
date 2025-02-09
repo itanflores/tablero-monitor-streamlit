@@ -4,7 +4,7 @@ import plotly.express as px
 import os
 
 # 📥 Cargar Dataset
-DATASET_URL = "dataset_procesado.csv"  # Reemplázalo con una URL pública si es necesario
+DATASET_URL = "dataset_procesado.csv"
 if not os.path.exists(DATASET_URL):
     st.error("❌ Error: El dataset no se encuentra en la ruta especificada.")
     st.stop()
@@ -34,26 +34,31 @@ st.set_page_config(page_title="Tablero de Monitoreo", page_icon="📊", layout="
 st.title("📊 Tablero de Monitoreo del Sistema")
 st.subheader("📌 KPIs del Sistema")
 
-# 📌 Mostrar métricas clave
+# 📌 Filtros
+fecha_min, fecha_max = df["Fecha"].min(), df["Fecha"].max()
+fecha_seleccionada = st.date_input("Selecciona un rango de fechas:", [fecha_min, fecha_max], fecha_min, fecha_max)
+df = df[(df["Fecha"] >= fecha_seleccionada[0]) & (df["Fecha"] <= fecha_seleccionada[1])]
+
+estados_seleccionados = st.multiselect("Selecciona uno o más Estados:", df["Estado del Sistema"].unique(), default=df["Estado del Sistema"].unique())
+df = df[df["Estado del Sistema"].isin(estados_seleccionados)]
+
+cpu_min, cpu_max = st.slider("Filtrar Uso CPU (%)", int(df["Uso CPU (%)"].min()), int(df["Uso CPU (%)"].max()), (int(df["Uso CPU (%)"].min()), int(df["Uso CPU (%)"].max())))
+df = df[(df["Uso CPU (%)"] >= cpu_min) & (df["Uso CPU (%)"] <= cpu_max)]
+
+if st.button("Restablecer Filtros"):
+    st.experimental_rerun()
+
+# 📊 Mostrar métricas clave
 col1, col2, col3, col4 = st.columns(4)
 col1.metric("Crítico", estado_counts.loc[estado_counts["Estado"] == "Crítico", "Cantidad"].values[0])
 col2.metric("Advertencia", estado_counts.loc[estado_counts["Estado"] == "Advertencia", "Cantidad"].values[0])
 col3.metric("Normal", estado_counts.loc[estado_counts["Estado"] == "Normal", "Cantidad"].values[0])
 col4.metric("Inactivo", estado_counts.loc[estado_counts["Estado"] == "Inactivo", "Cantidad"].values[0])
 
-# 📌 Filtros
-estado_seleccionado = st.selectbox("Selecciona el Estado del Sistema:", df["Estado del Sistema"].unique())
-
-df_filtrado = df[df["Estado del Sistema"] == estado_seleccionado]
-fig_trend = px.scatter(df_filtrado, x="Fecha", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], title=f"Tendencia de Uso de Recursos - {estado_seleccionado}")
-
-# 📊 Mostrar Gráficos en una sola página
+# 📊 Mostrar Gráficos
 st.plotly_chart(fig_pie, use_container_width=True)
 st.plotly_chart(fig_line, use_container_width=True)
 st.plotly_chart(fig_bar, use_container_width=True)
 st.plotly_chart(fig_boxplot, use_container_width=True)
-st.plotly_chart(fig_trend, use_container_width=True)
-
-# 🔄 Nota: No se necesita Ngrok para Streamlit Cloud
 
 st.success("✅ El tablero está listo y funcionando en Streamlit Cloud.")
