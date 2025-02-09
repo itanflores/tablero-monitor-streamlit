@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import seaborn as sns
-import matplotlib.pyplot as plt
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
@@ -51,14 +49,7 @@ with col1:
     st.plotly_chart(px.bar(df_avg, x="Estado del Sistema", y=["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"], barmode="group", title="📊 Uso de Recursos"), use_container_width=True)
 with col2:
     st.plotly_chart(px.line(df_grouped, x="Fecha", y="Cantidad_Suavizada", color="Estado del Sistema", title="📈 Evolución en el Tiempo", markers=True), use_container_width=True)
-    st.plotly_chart(px.box(df_filtrado, x="Estado del Sistema", y="Latencia Red (ms)", color="Estado del Sistema", title="📉 Distribución de la Latencia"), use_container_width=True)
-
-# 🔥 Matriz de Correlación
-st.subheader("🔍 Matriz de Correlación entre Variables")
-correlation_matrix = df_filtrado[["Uso CPU (%)", "Memoria Utilizada (%)", "Carga de Red (MB/s)"]].corr()
-fig_corr, ax = plt.subplots(figsize=(3, 1.5))  # Reducción de tamaño
-sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f", ax=ax)
-st.pyplot(fig_corr)
+    st.plotly_chart(px.scatter(df_filtrado, x="Uso CPU (%)", y="Memoria Utilizada (%)", color="Estado del Sistema", title="📊 Relación entre Uso de CPU y Memoria"), use_container_width=True)
 
 # 🔹 Sección 2: Sección de Pronósticos
 st.header("📈 Sección de Pronósticos")
