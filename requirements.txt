@@ -1,8 +1,14 @@
 streamlit
 pandas
-plotly
 numpy
+plotly
 matplotlib
-scipy
-openpyxl
+seaborn
+scikit-learn
+xgboost
+tensorflow
 pyngrok
+requests
+datetime
+configparser
+joblib
